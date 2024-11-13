@@ -112,12 +112,12 @@ def update(canvas, goat, cabbages):
         canvas.create_oval(cabbage.x - cabbage.value, cabbage.y - cabbage.value,
                            cabbage.x + cabbage.value, cabbage.y + cabbage.value, fill='green')
         
-    if goat.eatingRightNow: # при поедании капусты стадом рисуем два полукруга, один из которых серый, а другой - зеленый.
+    if goat.eatingRightNow: # при поедании капусты стадом рисуем полукруг стада - синий
         canvas.create_arc(goat.x - goat.size, goat.y - goat.size,
                            goat.x + goat.size, goat.y + goat.size, start=90, extent=180, fill='blue')
     else:
         canvas.create_oval(goat.x - goat.size, goat.y - goat.size,
-                       goat.x + goat.size, goat.y + goat.size, fill='blue') # если же не происходит процесса поедания, то стадо заполняется полностью серым цветом
+                       goat.x + goat.size, goat.y + goat.size, fill='blue') # если же не происходит процесса поедания, то стадо заполняется полностью синим цветом
     
     root.update()
 
