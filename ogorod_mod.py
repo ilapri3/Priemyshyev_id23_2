@@ -62,6 +62,7 @@ class Cabbages():
         self.value = value
         self.cabbages.append(Cabbage(x, y, value))
 
+
 class Herd(): # описываем поведение стада
     def __init__(self, speed, endurance, eating, fertility):
         self.speed = speed # задаем параметр скорости передживения стада
@@ -69,23 +70,25 @@ class Herd(): # описываем поведение стада
         self.eating = eating # задаем параметр скорости поедания капусты стадом
         self.fertility = fertility # задаем параметр плодовитости стада
 
-        self.x = 0 # начальные координаты стада
-        self.y = 0
+        self.x = random.randint(30, 770) # начальные координаты стада
+        self.y = random.randint(30, 770)
         self.volume = 10 # размер стада, который изменяется с поеданием капусты
         
         self.cord_x = 0
         self.cord_y = 0 # целевые координаты, к которым будет двигаться стадо, для поедания капусты
         
         self.eatingflag = 0 # состояние поедания капусты в данный момент времени
+        self.alive = 1
 
     def move_herd(self, x, y): # передвижение стада к капустам
         self.cord_x = x
         self.cord_y = y
         if self.volume >= 1: # сокращение численности стада, когда стадо не питается
             self.volume = self.volume - (1 / self.endurance) - (1/self.speed**self.speed) # чем выше выносливость, тем меньше сокращение стада и наоборот
+        elif self.alive == 0 and len(herds) == 1:
+            raise SystemExit
         else:
-            print('Стадо вымерло')
-            raise SystemExit  # завершение выполнения программы
+            self.alive = 0
 
 
     def eat_cabbage(self, cabbages, exist_cabbage): # процесс поедания капусты стадом
@@ -112,6 +115,7 @@ class Herd(): # описываем поведение стада
                 self.y = self.y + (self.cord_y - self.y) * (self.speed / distance)
                 self.eatingflag = 0
 
+
 def findNearestCabbage(herd, cabbages): # определение ближайшей капусты, которую стадо должно съесть
     nearest = 0
     min = size # минимальное расстояние между стадом и капустой
@@ -121,7 +125,7 @@ def findNearestCabbage(herd, cabbages): # определение ближайш�
             nearest = exist_cabbage # обновляем минимальное расстояние и ближайщую капусту
     return nearest # возвращаем ближайщую капусту, которая находится на минимальном расстоянии
 
-def drawing(canvas, herd, cabbages):
+def drawing(canvas, herds, cabbages):
     canvas.delete('all') #каждый раз удаляем весь холст и рисуем заново, чтобы не было наложения элементов при рисовании
     for exist_cabbage in cabbages.cabbages:
 
@@ -129,20 +133,22 @@ def drawing(canvas, herd, cabbages):
         drawing_cord_y = exist_cabbage.y
         value = exist_cabbage.value 
         canvas.create_oval(drawing_cord_x - value, drawing_cord_y - value, drawing_cord_x + value, drawing_cord_y + value, fill='green')
-        
-    if herd.eatingflag == 1:
+    
+    for herd in herds:
+        if herd.alive == 1:
+            if herd.eatingflag == 1:
 
-        drawing_herd_x = herd.x
-        drawing_herd_y = herd.y
-        value = herd.volume
-        canvas.create_arc(drawing_herd_x - value, drawing_herd_y - value, drawing_herd_x + value, drawing_herd_y + value, start = 90, extent = 180, fill = 'blue')
-        
-    else:
+                drawing_herd_x = herd.x
+                drawing_herd_y = herd.y
+                value = herd.volume
+                canvas.create_arc(drawing_herd_x - value, drawing_herd_y - value, drawing_herd_x + value, drawing_herd_y + value, start = 90, extent = 180, fill = 'blue')
+                
+            else:
 
-        drawing_herd_x = herd.x
-        drawing_herd_y = herd.y
-        value = herd.volume
-        canvas.create_oval(drawing_herd_x - value, drawing_herd_y - value, drawing_herd_x + value, drawing_herd_y + value, fill = 'blue')
+                drawing_herd_x = herd.x
+                drawing_herd_y = herd.y
+                value = herd.volume
+                canvas.create_oval(drawing_herd_x - value, drawing_herd_y - value, drawing_herd_x + value, drawing_herd_y + value, fill = 'blue')
 
     base.update()
 
@@ -150,39 +156,80 @@ def on_click(event):
     x_mouse = event.x
     y_mouse = event.y
 
-    enterme_val = Entry(base)
+    enterme_new_window = Toplevel(base)
+    enterme_new_window.title('Окно для ввода величины капусты')
+    enterme_label = Label(enterme_new_window, text = 'Величина добавляемой капусты')
+    enterme_label.pack()
+    enterme_label.place(x = 1, y = 25)
+    enterme_val = Entry(enterme_new_window)
     enterme_val.pack()
     enterme_val.place(x = 1, y = 1, width = 30)
 
     def cabbage_value():
         radius = enterme_val.get()
         value = int(radius)
-        print(x_mouse, y_mouse, value)
+        # print(x_mouse, y_mouse, value)
         cabbages.add_click_cabbage(x_mouse, y_mouse, value)
+        enterme_new_window.destroy()
 
-
-    confirm_button_for_add_cabbage = Button(base, text = 'Accept', command = cabbage_value)
+    confirm_button_for_add_cabbage = Button(enterme_new_window, text = 'Accept', command = cabbage_value)
     confirm_button_for_add_cabbage.pack()
     confirm_button_for_add_cabbage.place(x = 31, y = 1)
 
-    # speed = Spinbox(base, from_ = 1.0, to = 100.0)
-    # speed.pack()
-    # speed.place(x = 750, y = 1, width = 40)
+    window_for_herd = Toplevel(base)
+    window_for_herd.title('Окно для установки новых параметров для новго стада')
+    window_for_herd_label_1 = Label(window_for_herd, text = ' - Характеристика скорости')
+    window_for_herd_label_1.pack()
+    window_for_herd_label_1.place(x = 42, y = 1)
 
-    # endurance = Spinbox(from_ = 1.0, to = 100.0)
-    # endurance.pack()
-    # endurance.place(x = 750, y = 25, width = 40)
+    window_for_herd_label_2 = Label(window_for_herd, text = ' - Характеристика выносливости')
+    window_for_herd_label_2.pack()
+    window_for_herd_label_2.place(x = 42, y = 25)
 
-    # eating = Spinbox(from_ = 1.0, to = 100.0)
-    # eating.pack()
-    # eating.place(x = 750, y = 49, width = 40)
+    window_for_herd_label_3 = Label(window_for_herd, text = ' - Характеристика скорости поедания')
+    window_for_herd_label_3.pack()
+    window_for_herd_label_3.place(x = 42, y = 49)
 
-    # fertility = Spinbox(from_ = 1.0, to = 100.0)
-    # fertility.pack()
-    # fertility.place(x = 750, y = 73, width = 40)
+    window_for_herd_label_4 = Label(window_for_herd, text = ' - Характеристика плодовитости')
+    window_for_herd_label_4.pack()
+    window_for_herd_label_4.place(x = 42, y = 73)
 
+    def changes():
+        global new_speed, new_endurance, new_eating, new_fertility
+        new_speed = int(speed.get())
+        new_endurance = int(endurance.get())
+        new_eating = int(eating.get())
+        new_fertility = float(fertility.get())
+    
+    def create_new_herd():
+        new_herd = Herd(speed = new_speed, endurance = new_endurance, eating = new_eating, fertility = new_fertility)
+        herds.append(new_herd)
+        
+    speed_spinbox = StringVar(value = 8)
+    speed = Spinbox(window_for_herd, from_ = 1.0, to = 100.0, textvariable = speed_spinbox, command = changes)
+    speed.pack()
+    speed.place(x = 1, y = 1, width = 40)
 
-# создаем основое окно огорода
+    endurance_spinbox = StringVar(value = 8)
+    endurance = Spinbox(window_for_herd, from_ = 1.0, to = 100.0, textvariable = endurance_spinbox, command = changes)
+    endurance.pack()
+    endurance.place(x = 1, y = 25, width = 40)
+
+    eating_spinbox = StringVar(value = 1)
+    eating = Spinbox(window_for_herd, from_ = 1.0, to = 100.0, textvariable = eating_spinbox, command = changes)
+    eating.pack()
+    eating.place(x = 1, y = 49, width = 40)
+
+    fertility_spinbox = StringVar(value = 0.05)
+    fertility = Spinbox(window_for_herd, from_ = 0.01, to = 1.0, increment = 0.01, textvariable = fertility_spinbox, command = changes)
+    fertility.pack()
+    fertility.place(x = 1, y = 73, width = 55)
+
+    confirm_button_for_herd = Button(window_for_herd, text = 'Create herd', command = create_new_herd)
+    confirm_button_for_herd.pack()
+    confirm_button_for_herd.place(x = 1, y = 97)
+
+# -------------
 size = 800
 base = Tk()
 canvas = Canvas(base, width = size, height = size)
@@ -190,22 +237,28 @@ canvas.pack()
 canvas.bind('<Button-1>', on_click)
 
 cabbages = Cabbages(size)
+herds = []
 herd = Herd(speed = 8, endurance = 8, eating = 1, fertility = 0.05) # задание основных параметров для стада 
-cabbages.generate(17, herd) #17
+herds.append(herd)
+cabbages.generate(17, herds[0]) #17
 
 
 for _ in iter(int, 1):
-    nearest_Cabbage = findNearestCabbage(herd, cabbages)
-    cabbage_cord_x, cabbage_cord_y = nearest_Cabbage.x, nearest_Cabbage.y
-    herd.move_herd(cabbage_cord_x, cabbage_cord_y)
-    herd.find_nearest()
+    for herd in herds:
+        if herd == 0:
+            herds.remove(herd)
+            continue
+        nearest_Cabbage = findNearestCabbage(herd, cabbages)
+        cabbage_cord_x, cabbage_cord_y = nearest_Cabbage.x, nearest_Cabbage.y
+        herd.move_herd(cabbage_cord_x, cabbage_cord_y)
+        herd.find_nearest()
 
-    herd_cord_x, herd_cord_y = herd.x, herd.y
-    if herd_cord_x == cabbage_cord_x and herd_cord_y == cabbage_cord_y: # если стадо достигает капусты, то начинается процесс поедания
-        herd.eat_cabbage(cabbages, nearest_Cabbage)
+        herd_cord_x, herd_cord_y = herd.x, herd.y
+        if herd_cord_x == cabbage_cord_x and herd_cord_y == cabbage_cord_y: # если стадо достигает капусты, то начинается процесс поедания
+            herd.eat_cabbage(cabbages, nearest_Cabbage)
 
-    drawing(canvas, herd, cabbages)
+        drawing(canvas, herds, cabbages)
 
-    time.sleep(0.04) #устанвливаем задержку между итерациями цикла, чтобы избежать быстрого исполнения программы.
+        time.sleep(0.04) #устанвливаем задержку между итерациями цикла, чтобы избежать быстрого исполнения программы.
 
 base.mainloop()
