@@ -1,6 +1,7 @@
 from tkinter import *
 import time
 import random
+from tkinter import ttk
 
 class Cabbage():
     def __init__(self, x, y, value):
@@ -55,6 +56,11 @@ class Cabbages():
                 break
         self.cabbages.append(Cabbage(x, y, value)) # если все удовлетворяет, то создаем объект и доваляем в массив, в котором есть все капусты
 
+    def add_click_cabbage(self, x, y, value):
+        self.x = x
+        self.y = y
+        self.value = value
+        self.cabbages.append(Cabbage(x, y, value))
 
 class Herd(): # описываем поведение стада
     def __init__(self, speed, endurance, eating, fertility):
@@ -146,18 +152,34 @@ def on_click(event):
 
     enterme_val = Entry(base)
     enterme_val.pack()
-    enterme_val.place(x = 30, y = 30)
+    enterme_val.place(x = 1, y = 1, width = 30)
 
-    confirm_button_for_add_cabbage = Button(base, text = 'Подтвердить', command = lambda: cabbage_value(enterme_val.get()))
+    def cabbage_value():
+        radius = enterme_val.get()
+        value = int(radius)
+        print(x_mouse, y_mouse, value)
+        cabbages.add_click_cabbage(x_mouse, y_mouse, value)
+
+
+    confirm_button_for_add_cabbage = Button(base, text = 'Accept', command = cabbage_value)
     confirm_button_for_add_cabbage.pack()
-    confirm_button_for_add_cabbage.place(x = 250, y = 30)
+    confirm_button_for_add_cabbage.place(x = 31, y = 1)
 
-    def cabbage_value(value):
-        radius = int(value)
-        return radius
-    # cabbages.append(Cabbage(x_mouse, y_mouse, cabbage_value()))
-    # canvas.create_oval(x_mouse - radius, y_mouse - radius, x_mouse + radius, y_mouse + radius, fill = 'red')
-    print(x_mouse, y_mouse, cabbage_value())
+    # speed = Spinbox(base, from_ = 1.0, to = 100.0)
+    # speed.pack()
+    # speed.place(x = 750, y = 1, width = 40)
+
+    # endurance = Spinbox(from_ = 1.0, to = 100.0)
+    # endurance.pack()
+    # endurance.place(x = 750, y = 25, width = 40)
+
+    # eating = Spinbox(from_ = 1.0, to = 100.0)
+    # eating.pack()
+    # eating.place(x = 750, y = 49, width = 40)
+
+    # fertility = Spinbox(from_ = 1.0, to = 100.0)
+    # fertility.pack()
+    # fertility.place(x = 750, y = 73, width = 40)
 
 
 # создаем основое окно огорода
