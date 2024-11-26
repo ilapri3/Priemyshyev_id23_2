@@ -63,13 +63,13 @@ class Herd(): # описываем поведение стада
         self.eating = eating # задаем параметр скорости поедания капусты стадом
         self.fertility = fertility # задаем параметр плодовитости стада
 
-        self.x = 0 # начальные координаты стада
-        self.y = 0
+        self.x = random.randint(30, 770) # начальные координаты стада
+        self.y = random.randint(30, 770)
         self.volume = 10 # размер стада, который изменяется с поеданием капусты
         
         self.cord_x = 0
         self.cord_y = 0 # целевые координаты, к которым будет двигаться стадо, для поедания капусты
-        
+        self.alive = 1
         self.eatingflag = 0 # состояние поедания капусты в данный момент времени
 
     def move_herd(self, x, y): # передвижение стада к капустам
@@ -77,9 +77,10 @@ class Herd(): # описываем поведение стада
         self.cord_y = y
         if self.volume >= 1: # сокращение численности стада, когда стадо не питается
             self.volume = self.volume - (1 / self.endurance) - (1/self.speed**self.speed) # чем выше выносливость, тем меньше сокращение стада и наоборот
+        elif self.alive == 0 and len(herds) == 1:
+            raise SystemExit
         else:
-            print('Стадо вымерло')
-            raise SystemExit  # завершение выполнения программы
+            self.alive = 0  # завершение выполнения программы
 
 
     def eat_cabbage(self, cabbages, exist_cabbage): # процесс поедания капусты стадом
@@ -122,20 +123,22 @@ def drawing(canvas, herd, cabbages):
         drawing_cord_y = exist_cabbage.y
         value = exist_cabbage.value 
         canvas.create_oval(drawing_cord_x - value, drawing_cord_y - value, drawing_cord_x + value, drawing_cord_y + value, fill='green')
-        
-    if herd.eatingflag == 1:
 
-        drawing_herd_x = herd.x
-        drawing_herd_y = herd.y
-        value = herd.volume
-        canvas.create_arc(drawing_herd_x - value, drawing_herd_y - value, drawing_herd_x + value, drawing_herd_y + value, start = 90, extent = 180, fill = 'blue')
+    for herd in herds:
+        if herd.alive == 1:
+            if herd.eatingflag == 1:
         
-    else:
-
-        drawing_herd_x = herd.x
-        drawing_herd_y = herd.y
-        value = herd.volume
-        canvas.create_oval(drawing_herd_x - value, drawing_herd_y - value, drawing_herd_x + value, drawing_herd_y + value, fill = 'blue')
+                drawing_herd_x = herd.x
+                drawing_herd_y = herd.y
+                value = herd.volume
+                canvas.create_arc(drawing_herd_x - value, drawing_herd_y - value, drawing_herd_x + value, drawing_herd_y + value, start = 90, extent = 180, fill = 'blue')
+                
+            else:
+        
+                drawing_herd_x = herd.x
+                drawing_herd_y = herd.y
+                value = herd.volume
+                canvas.create_oval(drawing_herd_x - value, drawing_herd_y - value, drawing_herd_x + value, drawing_herd_y + value, fill = 'blue')
 
     base.update()
 
@@ -146,21 +149,29 @@ canvas = Canvas(base, width = size, height = size)
 canvas.pack()
 
 cabbages = Cabbages(size)
+herds = []
 herd = Herd(speed = 8, endurance = 8, eating = 1, fertility = 0.05) # задание основных параметров для стада 
+herds.append(herd)
 cabbages.generate(17, herd)
 
 
 
 for _ in iter(int, 1):
-    nearest_Cabbage = findNearestCabbage(herd, cabbages)
-    cabbage_cord_x, cabbage_cord_y = nearest_Cabbage.x, nearest_Cabbage.y
-    herd.move_herd(cabbage_cord_x, cabbage_cord_y)
-    herd.find_nearest()
+    for herd in herds:
+        if herd == 0:
+            herds.remove(herd)
+            continue
+        nearest_Cabbage = findNearestCabbage(herd, cabbages)
+        cabbage_cord_x, cabbage_cord_y = nearest_Cabbage.x, nearest_Cabbage.y
+        herd.move_herd(cabbage_cord_x, cabbage_cord_y)
+        herd.find_nearest()
+    
+        herd_cord_x, herd_cord_y = herd.x, herd.y
+        if herd_cord_x == cabbage_cord_x and herd_cord_y == cabbage_cord_y: # если стадо достигает капусты, то начинается процесс поедания
+            herd.eat_cabbage(cabbages, nearest_Cabbage)
+    
+        drawing(canvas, herd, cabbages)
+    
+        time.sleep(0.04) #устанвливаем задержку между итерациями цикла, чтобы избежать быстрого исполнения программы.
 
-    herd_cord_x, herd_cord_y = herd.x, herd.y
-    if herd_cord_x == cabbage_cord_x and herd_cord_y == cabbage_cord_y: # если стадо достигает капусты, то начинается процесс поедания
-        herd.eat_cabbage(cabbages, nearest_Cabbage)
-
-    drawing(canvas, herd, cabbages)
-
-    time.sleep(0.04) #устанвливаем задержку между итерациями цикла, чтобы избежать быстрого исполнения программы.
+base.mainloop()
