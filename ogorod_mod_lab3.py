@@ -5,10 +5,9 @@ from tkinter import ttk
 
 class Cabbage():
     def __init__(self, x, y, value):
-        #создаем отдельные капусты по координатам x и y на огороде
         self.x = x
         self.y = y
-        self.value = value # задаем величину капусты
+        self.value = value
 
 
 class Cabbages():
@@ -17,15 +16,14 @@ class Cabbages():
         self.volume = volume
         self.cabbages = []
 
-    def checker(self, x, y, value): #делаем проверку на то, чтобы наши капусты не наростали друг на друга
-        for exist_cabbage in self.cabbages: # проходимся по уже созданным капустам
-            if ((x - exist_cabbage.x) ** 2 + (y - exist_cabbage.y) ** 2) ** (1/2) < (value + exist_cabbage.value): # сравниваем расстояние между центрами
-                return True # пересекается
+    def checker(self, x, y, value):
+        for exist_cabbage in self.cabbages:
+            if ((x - exist_cabbage.x) ** 2 + (y - exist_cabbage.y) ** 2) ** (1/2) < (value + exist_cabbage.value): 
+                return True
     
-    # данная функция служит для первоначальной генерации капусты на огороде, до поедания одной из капуст
     def generate(self, n, herd):
-        self.n = n # храним общее количество кустов, которое будет задано для создания
-        count = 0 # счетчик для отслеживания количества созданной капусты
+        self.n = n 
+        count = 0
         while count < n:
             limit = 5
             scalar = 1.5
@@ -36,13 +34,12 @@ class Cabbages():
             y = random.randint(border, self.volume - border)
             if self.checker(x, y, value):
                 pass
-            else: # проверка на то, чтобы капусты не пересекались между собой
+            else:
                 self.cabbages.append(Cabbage(x, y, value))
                 count += 1
     
-    # данная функция служит для дальнейшего добавления капусты, после того, как стадо съело одну капусту
     def append(self, herd):
-        while True: # цикл до тех пор, пока на огороде не появится новая капуста
+        while True:
             limit = 5
             scalar = 1.5
             herd_size = 10
@@ -54,7 +51,7 @@ class Cabbages():
                 pass
             else: 
                 break
-        self.cabbages.append(Cabbage(x, y, value)) # если все удовлетворяет, то создаем объект и доваляем в массив, в котором есть все капусты
+        self.cabbages.append(Cabbage(x, y, value))
 
     def add_click_cabbage(self, x, y, value):
         self.x = x
@@ -63,73 +60,72 @@ class Cabbages():
         self.cabbages.append(Cabbage(x, y, value))
 
 
-class Herd(): # описываем поведение стада
+class Herd(): 
     def __init__(self, speed, endurance, eating, fertility):
-        self.speed = speed # задаем параметр скорости передживения стада
-        self.endurance = endurance # задаем параметр живучести стада
-        self.eating = eating # задаем параметр скорости поедания капусты стадом
-        self.fertility = fertility # задаем параметр плодовитости стада
+        self.speed = speed 
+        self.endurance = endurance
+        self.eating = eating 
+        self.fertility = fertility 
 
-        self.x = random.randint(30, 770) # начальные координаты стада
+        self.x = random.randint(30, 770) 
         self.y = random.randint(30, 770)
-        self.volume = 10 # размер стада, который изменяется с поеданием капусты
+        self.volume = 10 
         
         self.cord_x = 0
-        self.cord_y = 0 # целевые координаты, к которым будет двигаться стадо, для поедания капусты
-        
-        self.eatingflag = 0 # состояние поедания капусты в данный момент времени
+        self.cord_y = 0 
+
+        self.eatingflag = 0 
         self.alive = 1
 
-    def move_herd(self, x, y): # передвижение стада к капустам
+    def move_herd(self, x, y):
         self.cord_x = x
         self.cord_y = y
-        if self.volume >= 1: # сокращение численности стада, когда стадо не питается
-            self.volume = self.volume - (1 / self.endurance) - (1/self.speed**self.speed) # чем выше выносливость, тем меньше сокращение стада и наоборот
+        if self.volume >= 1:
+            self.volume = self.volume - (1 / self.endurance) - (1/self.speed**self.speed) # чем выше выносливость и скорость перемещения, тем меньше сокращение стада и наоборот
         elif self.alive == 0 and len(herds) == 1:
             raise SystemExit
+            # end_animation = 1
         else:
             self.alive = 0
 
 
     def eat_cabbage(self, cabbages, exist_cabbage):
-        if self.alive == 1: # процесс поедания капусты стадом
-            if exist_cabbage.value > 0: # проврерка, съедена капуста или нет
-                exist_cabbage.value = exist_cabbage.value - self.eating # уменьшение размера капусты, в процессе поедания со скоростью поедания стада
+        if self.alive == 1:
+            if exist_cabbage.value > 0: 
+                exist_cabbage.value = exist_cabbage.value - self.eating
                 
-                if exist_cabbage.value <= 0: # условие, если капуста была съедена
-                    cabbages.cabbages.remove(exist_cabbage) # удаляем данную капусту из списка всех капуст 
-                    cabbages.append(self) # и сразу же добавляем новую капусту в огород
+                if exist_cabbage.value <= 0:
+                    cabbages.cabbages.remove(exist_cabbage) 
+                    cabbages.append(self) 
                 const = 1.35
-                self.volume = self.volume + (exist_cabbage.value * self.fertility * const) #увеличение размера стада после поедания капусты, в зависимости от количества съеденного и плодовитости
+                self.volume = self.volume + (exist_cabbage.value * self.fertility * const) 
 
-    def find_nearest(self):
-        if self.alive == 1: #  отвечает за движение козы к заданной точке. Если расстояние до точки меньше, чем скорость, то коза останавливается и начинает есть кустик.
-            if self.x != self.cord_x or self.y != self.cord_y: # проверка, достигло ли стадо капусты
-                # вычисляем разницу значений координат, чтобы определить направление и расстояние для движения по вектору 
-                distance = ((self.cord_x - self.x) ** 2 + (self.cord_y - self.y) ** 2) ** (1/2) #вычисление вектора по Пифагору
-                if distance <= self.speed: # проверка, достаточно ли близко коза к капусте, чтобы ее есть
+    def moving_nearest(self):
+        if self.alive == 1: 
+            if self.x != self.cord_x or self.y != self.cord_y:
+                distance = ((self.cord_x - self.x) ** 2 + (self.cord_y - self.y) ** 2) ** (1/2) 
+                if distance <= self.speed:
                     self.x = self.cord_x
-                    self.y = self.cord_y # обновляем координаты козы, на текущие координаты
+                    self.y = self.cord_y 
                     self.eatingflag = 1
                 else:
-                    # если расстояние до цели большое, коза будет двигаться быстрее, если расстояние маленькое — медленнее.
                     self.x = self.x + (self.cord_x - self.x) * (self.speed / distance)
                     self.y = self.y + (self.cord_y - self.y) * (self.speed / distance)
                     self.eatingflag = 0
 
 
-def findNearestCabbage(herd, cabbages):# определение ближайшей капусты, которую стадо должно съесть
+def findNearestCabbage(herd, cabbages):
     nearest = 0
-    min = size # минимальное расстояние между стадом и капустой
-    for exist_cabbage in cabbages.cabbages: # перебираем каждый кочан капусты
-        if ((((herd.x - exist_cabbage.x) ** 2 + (herd.y - exist_cabbage.y) ** 2) ** (1/2)) < min) and (exist_cabbage.value > 0): # если расстояние до куста меньше, чем минимальное расстояние и если капуста существует
+    min = size 
+    for exist_cabbage in cabbages.cabbages: 
+        if ((((herd.x - exist_cabbage.x) ** 2 + (herd.y - exist_cabbage.y) ** 2) ** (1/2)) < min) and (exist_cabbage.value > 0):
             min = ((herd.x - exist_cabbage.x) ** 2 + (herd.y - exist_cabbage.y) ** 2) ** (1/2)
-            nearest = exist_cabbage # обновляем минимальное расстояние и ближайщую капусту
-    return nearest # возвращаем ближайщую капусту, которая находится на минимальном расстоянии
+            nearest = exist_cabbage 
+    return nearest 
 
 
 def drawing(canvas, herds, cabbages):
-    canvas.delete('all') #каждый раз удаляем весь холст и рисуем заново, чтобы не было наложения элементов при рисовании
+    canvas.delete('all') 
     for exist_cabbage in cabbages.cabbages:
         for herd in herds:
             if herd.alive == 1:
@@ -162,6 +158,7 @@ def on_click(event):
 
     enterme_new_window = Toplevel(base)
     enterme_new_window.title('Окно для ввода величины капусты')
+    enterme_new_window.geometry('250x100+1+1')
     enterme_label = Label(enterme_new_window, text = 'Величина добавляемой капусты')
     enterme_label.pack()
     enterme_label.place(x = 1, y = 25)
@@ -181,6 +178,7 @@ def on_click(event):
     confirm_button_for_add_cabbage.place(x = 31, y = 1)
 
     window_for_herd = Toplevel(base)
+    window_for_herd.geometry('300x125+1+160')
     window_for_herd.title('Окно для установки новых параметров для новго стада')
     window_for_herd_label_1 = Label(window_for_herd, text = ' - Характеристика скорости')
     window_for_herd_label_1.pack()
@@ -208,6 +206,7 @@ def on_click(event):
     def create_new_herd():
         new_herd = Herd(speed = new_speed, endurance = new_endurance, eating = new_eating, fertility = new_fertility)
         herds.append(new_herd)
+        window_for_herd.destroy()
         
     speed_spinbox = StringVar(value = 8)
     speed = Spinbox(window_for_herd, from_ = 1.0, to = 100.0, textvariable = speed_spinbox, command = changes)
@@ -242,27 +241,33 @@ canvas.bind('<Button-1>', on_click)
 
 cabbages = Cabbages(size)
 herds = []
-herd = Herd(speed = 8, endurance = 8, eating = 1, fertility = 0.05) # задание основных параметров для стада 
+herd = Herd(speed = 8, endurance = 8, eating = 1, fertility = 0.05) 
 herds.append(herd)
-cabbages.generate(17, herds[0]) #17
+cabbages.generate(2, herds[0])
 
 
 for _ in iter(int, 1):
     for herd in herds:
         if herd == 0:
             herds.remove(herd)
-            continue
         nearest_Cabbage = findNearestCabbage(herd, cabbages)
         cabbage_cord_x, cabbage_cord_y = nearest_Cabbage.x, nearest_Cabbage.y
+
         herd.move_herd(cabbage_cord_x, cabbage_cord_y)
-        herd.find_nearest()
+        # if end_animation == 1:
+        #     dead_herd = ttk.Label(text = 'Все стада вымерли', font = ('Arial', 14))
+        #     dead_herd.pack()
+        #     dead_herd.place(anchor = CENTER) 
+        #     break
+
+        herd.moving_nearest()
 
         herd_cord_x, herd_cord_y = herd.x, herd.y
-        if herd_cord_x == cabbage_cord_x and herd_cord_y == cabbage_cord_y: # если стадо достигает капусты, то начинается процесс поедания
+        if herd_cord_x == cabbage_cord_x and herd_cord_y == cabbage_cord_y: 
             herd.eat_cabbage(cabbages, nearest_Cabbage)
 
         drawing(canvas, herds, cabbages)
 
-        time.sleep(0.04) #устанвливаем задержку между итерациями цикла, чтобы избежать быстрого исполнения программы.
+        time.sleep(0.04) 
 
 base.mainloop()
