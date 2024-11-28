@@ -8,6 +8,7 @@ class Cabbage():
         self.x = x
         self.y = y
         self.value = value
+        self.occuped = 0
 
 
 class Cabbages():
@@ -91,7 +92,7 @@ class Herd():
 
 
     def eat_cabbage(self, cabbages, exist_cabbage):
-        if exist_cabbage.value > 0: 
+        if exist_cabbage.value > 0:
             exist_cabbage.value = exist_cabbage.value - self.eating
                 
             if exist_cabbage.value <= 0:
@@ -220,13 +221,21 @@ def on_click(event):
     confirm_button_for_herd = ttk.Button(window_for_herd, text = 'Create herd', command = create_new_herd)
     confirm_button_for_herd.place(x = 1, y = 97)
 
+stop = False
+def pause():
+    global stop
+    stop = not stop
+
+
 # -------------
 size = 800
 base = Tk()
 base.config(bg = 'brown')
-canvas = Canvas(base, width = size, height = size, bg = '#8B4513')
+canvas = Canvas(base, width = size, height = size)
 canvas.pack()
 canvas.bind('<Button-1>', on_click)
+stop_button = ttk.Button(base, text = 'Пауза', command = pause)
+stop_button.place(x = 710, y = 1)
 
 
 cabbages = Cabbages(size)
@@ -236,21 +245,22 @@ herds.append(herd)
 cabbages.generate(10, herds[0])
 
 def inf_cycle():
-    for herd in herds:
-        if herd.alive == 1:
-            nearest_Cabbage = findNearestCabbage(herd, cabbages)
-            cabbage_cord_x, cabbage_cord_y = nearest_Cabbage.x, nearest_Cabbage.y
+    if not stop:
+        for herd in herds:
+            if herd.alive == 1:
+                nearest_Cabbage = findNearestCabbage(herd, cabbages)
+                cabbage_cord_x, cabbage_cord_y = nearest_Cabbage.x, nearest_Cabbage.y
 
-            herd.move_herd(cabbage_cord_x, cabbage_cord_y)
-            herd.moving_nearest()
+                herd.move_herd(cabbage_cord_x, cabbage_cord_y)
+                herd.moving_nearest()
 
-            herd_cord_x, herd_cord_y = herd.x, herd.y
-            if herd_cord_x == cabbage_cord_x and herd_cord_y == cabbage_cord_y: 
-                herd.eat_cabbage(cabbages, nearest_Cabbage)
-        else:
-            herds.remove(herd)
-    
-    drawing(canvas, herds, cabbages)
+                herd_cord_x, herd_cord_y = herd.x, herd.y
+                if herd_cord_x == cabbage_cord_x and herd_cord_y == cabbage_cord_y: 
+                    herd.eat_cabbage(cabbages, nearest_Cabbage)
+            else:
+                herds.remove(herd)
+        
+        drawing(canvas, herds, cabbages)
     base.after(30, inf_cycle)
 
 inf_cycle()
