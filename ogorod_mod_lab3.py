@@ -77,6 +77,16 @@ class Herd():
 
         self.eatingflag = 0 
         self.alive = 1
+    
+    def change(self, speed=None, endurance=None, eating=None, fertility=None):
+        if speed is not None:
+            self.speed = speed
+        if endurance is not None:
+            self.endurance = endurance
+        if eating is not None:
+            self.eating = eating
+        if fertility is not None:
+            self.fertility = fertility
 
     def move_herd(self, x, y):
         self.cord_x = x
@@ -196,12 +206,15 @@ def on_click(event):
         new_endurance = int(endurance.get())
         new_eating = int(eating.get())
         new_fertility = float(fertility.get())
+        
+        if herds:
+            herds[0].change(new_speed, new_endurance, new_eating, new_fertility)
     
     def create_new_herd():
         new_herd = Herd(speed = new_speed, endurance = new_endurance, eating = new_eating, fertility = new_fertility)
         herds.append(new_herd)
         window_for_herd.destroy()
-        
+
     speed_spinbox = StringVar(value = 5)
     speed = Spinbox(window_for_herd, from_ = 1.0, to = 100.0, textvariable = speed_spinbox, state = "readonly", command = changes)
     speed.place(x = 1, y = 1, width = 40)
