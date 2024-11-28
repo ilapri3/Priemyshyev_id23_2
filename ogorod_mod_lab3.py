@@ -80,25 +80,25 @@ class Herd():
     def move_herd(self, x, y):
         self.cord_x = x
         self.cord_y = y
+        
         if self.volume >= 1:
-            self.volume = self.volume - (1 / self.endurance) - (1/self.speed**self.speed) # чем выше выносливость и скорость перемещения, тем меньше сокращение стада и наоборот
+            self.volume = self.volume - (1 / self.speed) + (1/self.endurance)
         elif self.alive == 0 and len(herds) == 1:
+            print('Стадо вымерло')
             raise SystemExit
-            # end_animation = 1
         else:
             self.alive = 0
 
 
     def eat_cabbage(self, cabbages, exist_cabbage):
-        if self.alive == 1:
-            if exist_cabbage.value > 0: 
-                exist_cabbage.value = exist_cabbage.value - self.eating
+        if exist_cabbage.value > 0: 
+            exist_cabbage.value = exist_cabbage.value - self.eating
                 
-                if exist_cabbage.value <= 0:
-                    cabbages.cabbages.remove(exist_cabbage) 
-                    cabbages.append(self) 
-                const = 1.35
-                self.volume = self.volume + (exist_cabbage.value * self.fertility * const) 
+            if exist_cabbage.value <= 0:
+                cabbages.cabbages.remove(exist_cabbage)
+                cabbages.append(self)
+            const = 1.35
+            self.volume = self.volume + (exist_cabbage.value * self.fertility * const) 
 
     def moving_nearest(self):
         if self.alive == 1: 
@@ -159,11 +159,9 @@ def on_click(event):
     enterme_new_window = Toplevel(base)
     enterme_new_window.title('Окно для ввода величины капусты')
     enterme_new_window.geometry('250x100+1+1')
-    enterme_label = Label(enterme_new_window, text = 'Величина добавляемой капусты')
-    enterme_label.pack()
+    enterme_label = ttk.Label(enterme_new_window, text = 'Величина добавляемой капусты')
     enterme_label.place(x = 1, y = 25)
-    enterme_val = Entry(enterme_new_window)
-    enterme_val.pack()
+    enterme_val = ttk.Entry(enterme_new_window)
     enterme_val.place(x = 1, y = 1, width = 30)
 
     def cabbage_value():
@@ -173,27 +171,22 @@ def on_click(event):
         cabbages.add_click_cabbage(x_mouse, y_mouse, value)
         enterme_new_window.destroy()
 
-    confirm_button_for_add_cabbage = Button(enterme_new_window, text = 'Accept', command = cabbage_value)
-    confirm_button_for_add_cabbage.pack()
+    confirm_button_for_add_cabbage = ttk.Button(enterme_new_window, text = 'Accept', command = cabbage_value)
     confirm_button_for_add_cabbage.place(x = 31, y = 1)
 
     window_for_herd = Toplevel(base)
     window_for_herd.geometry('300x125+1+160')
     window_for_herd.title('Окно для установки новых параметров для новго стада')
-    window_for_herd_label_1 = Label(window_for_herd, text = ' - Характеристика скорости')
-    window_for_herd_label_1.pack()
+    window_for_herd_label_1 = ttk.Label(window_for_herd, text = ' - Характеристика скорости')
     window_for_herd_label_1.place(x = 42, y = 1)
 
-    window_for_herd_label_2 = Label(window_for_herd, text = ' - Характеристика выносливости')
-    window_for_herd_label_2.pack()
+    window_for_herd_label_2 = ttk.Label(window_for_herd, text = ' - Характеристика выносливости')
     window_for_herd_label_2.place(x = 42, y = 25)
 
-    window_for_herd_label_3 = Label(window_for_herd, text = ' - Характеристика скорости поедания')
-    window_for_herd_label_3.pack()
+    window_for_herd_label_3 = ttk.Label(window_for_herd, text = ' - Характеристика скорости поедания')
     window_for_herd_label_3.place(x = 42, y = 49)
 
-    window_for_herd_label_4 = Label(window_for_herd, text = ' - Характеристика плодовитости')
-    window_for_herd_label_4.pack()
+    window_for_herd_label_4 = ttk.Label(window_for_herd, text = ' - Характеристика плодовитости')
     window_for_herd_label_4.place(x = 42, y = 73)
 
     def changes():
@@ -208,66 +201,57 @@ def on_click(event):
         herds.append(new_herd)
         window_for_herd.destroy()
         
-    speed_spinbox = StringVar(value = 8)
-    speed = Spinbox(window_for_herd, from_ = 1.0, to = 100.0, textvariable = speed_spinbox, command = changes)
-    speed.pack()
+    speed_spinbox = StringVar(value = 5)
+    speed = Spinbox(window_for_herd, from_ = 1.0, to = 100.0, textvariable = speed_spinbox, state = "readonly", command = changes)
     speed.place(x = 1, y = 1, width = 40)
 
     endurance_spinbox = StringVar(value = 8)
-    endurance = Spinbox(window_for_herd, from_ = 1.0, to = 100.0, textvariable = endurance_spinbox, command = changes)
-    endurance.pack()
+    endurance = Spinbox(window_for_herd, from_ = 1.0, to = 100.0, textvariable = endurance_spinbox, state = "readonly", command = changes)
     endurance.place(x = 1, y = 25, width = 40)
 
     eating_spinbox = StringVar(value = 1)
-    eating = Spinbox(window_for_herd, from_ = 1.0, to = 100.0, textvariable = eating_spinbox, command = changes)
-    eating.pack()
+    eating = Spinbox(window_for_herd, from_ = 1.0, to = 100.0, textvariable = eating_spinbox, state = "readonly", command = changes)
     eating.place(x = 1, y = 49, width = 40)
 
     fertility_spinbox = StringVar(value = 0.05)
-    fertility = Spinbox(window_for_herd, from_ = 0.01, to = 1.0, increment = 0.01, textvariable = fertility_spinbox, command = changes)
-    fertility.pack()
+    fertility = Spinbox(window_for_herd, from_ = 0.01, to = 1.0, increment = 0.01, textvariable = fertility_spinbox, state = "readonly", command = changes)
     fertility.place(x = 1, y = 73, width = 55)
 
-    confirm_button_for_herd = Button(window_for_herd, text = 'Create herd', command = create_new_herd)
-    confirm_button_for_herd.pack()
+    confirm_button_for_herd = ttk.Button(window_for_herd, text = 'Create herd', command = create_new_herd)
     confirm_button_for_herd.place(x = 1, y = 97)
 
 # -------------
 size = 800
 base = Tk()
-canvas = Canvas(base, width = size, height = size)
+base.config(bg = 'brown')
+canvas = Canvas(base, width = size, height = size, bg = '#8B4513')
 canvas.pack()
 canvas.bind('<Button-1>', on_click)
 
+
 cabbages = Cabbages(size)
 herds = []
-herd = Herd(speed = 8, endurance = 8, eating = 1, fertility = 0.05) 
+herd = Herd(speed = 5, endurance = 8, eating = 1, fertility = 0.05) 
 herds.append(herd)
-cabbages.generate(2, herds[0])
+cabbages.generate(10, herds[0])
 
-
-for _ in iter(int, 1):
+def inf_cycle():
     for herd in herds:
-        if herd == 0:
+        if herd.alive == 1:
+            nearest_Cabbage = findNearestCabbage(herd, cabbages)
+            cabbage_cord_x, cabbage_cord_y = nearest_Cabbage.x, nearest_Cabbage.y
+
+            herd.move_herd(cabbage_cord_x, cabbage_cord_y)
+            herd.moving_nearest()
+
+            herd_cord_x, herd_cord_y = herd.x, herd.y
+            if herd_cord_x == cabbage_cord_x and herd_cord_y == cabbage_cord_y: 
+                herd.eat_cabbage(cabbages, nearest_Cabbage)
+        else:
             herds.remove(herd)
-        nearest_Cabbage = findNearestCabbage(herd, cabbages)
-        cabbage_cord_x, cabbage_cord_y = nearest_Cabbage.x, nearest_Cabbage.y
+    
+    drawing(canvas, herds, cabbages)
+    base.after(30, inf_cycle)
 
-        herd.move_herd(cabbage_cord_x, cabbage_cord_y)
-        # if end_animation == 1:
-        #     dead_herd = ttk.Label(text = 'Все стада вымерли', font = ('Arial', 14))
-        #     dead_herd.pack()
-        #     dead_herd.place(anchor = CENTER) 
-        #     break
-
-        herd.moving_nearest()
-
-        herd_cord_x, herd_cord_y = herd.x, herd.y
-        if herd_cord_x == cabbage_cord_x and herd_cord_y == cabbage_cord_y: 
-            herd.eat_cabbage(cabbages, nearest_Cabbage)
-
-        drawing(canvas, herds, cabbages)
-
-        time.sleep(0.04) 
-
+inf_cycle()
 base.mainloop()
