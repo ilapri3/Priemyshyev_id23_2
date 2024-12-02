@@ -93,7 +93,7 @@ class Herd():
         self.cord_y = y
         
         if self.volume >= 1:
-            self.volume = self.volume - (1 / self.speed) + (1/self.endurance)
+            self.volume = self.volume - (1 / (self.speed + self.endurance))
         elif self.alive == 0 and len(herds) == 1:
             print('Стадо вымерло')
             raise SystemExit
@@ -234,10 +234,10 @@ def on_click(event):
     confirm_button_for_herd = ttk.Button(window_for_herd, text = 'Create herd', command = create_new_herd)
     confirm_button_for_herd.place(x = 1, y = 97)
 
-stop = False
+stop = 0
 def pause():
     global stop
-    stop = not stop
+    stop +=1
 
 
 # -------------
@@ -258,22 +258,27 @@ herds.append(herd)
 cabbages.generate(10, herds[0])
 
 def inf_cycle():
-    if not stop:
-        for herd in herds:
-            if herd.alive == 1:
-                nearest_Cabbage = findNearestCabbage(herd, cabbages)
-                cabbage_cord_x, cabbage_cord_y = nearest_Cabbage.x, nearest_Cabbage.y
+    if stop % 2 == 0:
+        if len(herds) != 0:
+            for herd in herds:
+                if herd.alive == 1:
+                    nearest_Cabbage = findNearestCabbage(herd, cabbages)
+                    cabbage_cord_x, cabbage_cord_y = nearest_Cabbage.x, nearest_Cabbage.y
 
-                herd.move_herd(cabbage_cord_x, cabbage_cord_y)
-                herd.moving_nearest()
+                    herd.move_herd(cabbage_cord_x, cabbage_cord_y)
+                    herd.moving_nearest()
 
-                herd_cord_x, herd_cord_y = herd.x, herd.y
-                if herd_cord_x == cabbage_cord_x and herd_cord_y == cabbage_cord_y: 
-                    herd.eat_cabbage(cabbages, nearest_Cabbage)
-            else:
-                herds.remove(herd)
-        
-        drawing(canvas, herds, cabbages)
+                    herd_cord_x, herd_cord_y = herd.x, herd.y
+                    if herd_cord_x == cabbage_cord_x and herd_cord_y == cabbage_cord_y: 
+                        herd.eat_cabbage(cabbages, nearest_Cabbage)
+                else:
+                    herds.remove(herd)
+            
+            drawing(canvas, herds, cabbages)
+        else:
+            print('Стада вымерли')
+            raise SystemExit
+            
     base.after(30, inf_cycle)
 
 inf_cycle()
