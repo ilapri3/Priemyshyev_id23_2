@@ -22,7 +22,7 @@ class Cabbages():
             if ((x - exist_cabbage.x) ** 2 + (y - exist_cabbage.y) ** 2) ** (1/2) < (value + exist_cabbage.value): 
                 return True
     
-    def generate(self, n, herd):
+    def generate(self, n):
         self.n = n 
         count = 0
         while count < n:
@@ -103,13 +103,15 @@ class Herd():
 
     def eat_cabbage(self, cabbages, exist_cabbage):
         if exist_cabbage.value > 0:
+
             exist_cabbage.value = exist_cabbage.value - self.eating
                 
             if exist_cabbage.value <= 0:
                 cabbages.cabbages.remove(exist_cabbage)
                 cabbages.append(self)
             const = 1.35
-            self.volume = self.volume + (exist_cabbage.value * self.fertility * const) 
+            self.volume = self.volume + (exist_cabbage.value * self.fertility * const)
+
 
     def moving_nearest(self):
         if self.alive == 1: 
@@ -119,6 +121,7 @@ class Herd():
                     self.x = self.cord_x
                     self.y = self.cord_y 
                     self.eatingflag = 1
+
                 else:
                     self.x = self.x + (self.cord_x - self.x) * (self.speed / distance)
                     self.y = self.y + (self.cord_y - self.y) * (self.speed / distance)
@@ -131,7 +134,7 @@ def findNearestCabbage(herd, cabbages):
     for exist_cabbage in cabbages.cabbages: 
         if ((((herd.x - exist_cabbage.x) ** 2 + (herd.y - exist_cabbage.y) ** 2) ** (1/2)) < min) and (exist_cabbage.value > 0):
             min = ((herd.x - exist_cabbage.x) ** 2 + (herd.y - exist_cabbage.y) ** 2) ** (1/2)
-            nearest = exist_cabbage 
+            nearest = exist_cabbage
     return nearest 
 
 
@@ -207,8 +210,9 @@ def on_click(event):
         new_eating = int(eating.get())
         new_fertility = float(fertility.get())
         
-        if herds:
-            herds[0].change(new_speed, new_endurance, new_eating, new_fertility)
+
+        # if herds:
+        #     herds[-1].change(new_speed, new_endurance, new_eating, new_fertility)
     
     def create_new_herd():
         new_herd = Herd(speed = new_speed, endurance = new_endurance, eating = new_eating, fertility = new_fertility)
@@ -233,6 +237,67 @@ def on_click(event):
 
     confirm_button_for_herd = ttk.Button(window_for_herd, text = 'Create herd', command = create_new_herd)
     confirm_button_for_herd.place(x = 1, y = 97)
+#-----
+def change_click(event):
+        x_mouse = event.x
+        y_mouse = event.y
+        window_for_herd_change = Toplevel(base)
+        window_for_herd_change.geometry('300x170+1+325')
+        window_for_herd_change.title('Окно для установки новых параметров для новго стада')
+        window_for_herd_change_label_1 = ttk.Label(window_for_herd_change, text = ' - Характеристика скорости')
+        window_for_herd_change_label_1.place(x = 42, y = 1)
+
+        window_for_herd_change_label_2 = ttk.Label(window_for_herd_change, text = ' - Характеристика выносливости')
+        window_for_herd_change_label_2.place(x = 42, y = 25)
+
+        window_for_herd_change_label_3 = ttk.Label(window_for_herd_change, text = ' - Характеристика скорости поедания')
+        window_for_herd_change_label_3.place(x = 42, y = 49)
+
+        window_for_herd_change_label_4 = ttk.Label(window_for_herd_change, text = ' - Характеристика плодовитости')
+        window_for_herd_change_label_4.place(x = 42, y = 73)
+
+        def changes_any():
+            global change_new_speed, change_new_endurance, change_new_eating, change_new_fertility
+            change_new_speed = int(speed_change.get())
+            change_new_endurance = int(endurance_change.get())
+            change_new_eating = int(eating_change.get())
+            change_new_fertility = float(fertility_change.get())
+            
+            
+            if herds:
+                herds[val].change(change_new_speed, change_new_endurance, change_new_eating, change_new_fertility)
+            
+
+        speed_spinbox_cange = StringVar(value = 5)
+        speed_change = Spinbox(window_for_herd_change, from_ = 1.0, to = 100.0, textvariable = speed_spinbox_cange, state = "readonly", command = changes_any)
+        speed_change.place(x = 1, y = 1, width = 40)
+
+        endurance_spinbox_change = StringVar(value = 8)
+        endurance_change = Spinbox(window_for_herd_change, from_ = 1.0, to = 100.0, textvariable = endurance_spinbox_change, state = "readonly", command = changes_any)
+        endurance_change.place(x = 1, y = 25, width = 40)
+
+        eating_spinbox_change = StringVar(value = 1)
+        eating_change = Spinbox(window_for_herd_change, from_ = 1.0, to = 100.0, textvariable = eating_spinbox_change, state = "readonly", command = changes_any)
+        eating_change.place(x = 1, y = 49, width = 40)
+
+        fertility_spinbox_change = StringVar(value = 0.05)
+        fertility_change = Spinbox(window_for_herd_change, from_ = 0.01, to = 1.0, increment = 0.01, textvariable = fertility_spinbox_change, state = "readonly", command = changes_any)
+        fertility_change.place(x = 1, y = 73, width = 55)
+
+        list_herds = []
+
+        for herd in range(len(herds)):
+            list_herds.append(herd)
+
+        def selector(a):
+            global val
+            a = 1
+            val = int(choose_box.get())
+            return a
+
+        choose_box = ttk.Combobox(window_for_herd_change, values = list_herds)
+        choose_box.place(x = 1, y = 97)
+        choose_box.bind("<<ComboboxSelected>>", selector)
 
 stop = 0
 def pause():
@@ -247,6 +312,7 @@ base.config(bg = 'brown')
 canvas = Canvas(base, width = size, height = size)
 canvas.pack()
 canvas.bind('<Button-1>', on_click)
+canvas.bind('<Button-2>', change_click)
 stop_button = ttk.Button(base, text = 'Пауза', command = pause)
 stop_button.place(x = 710, y = 1)
 
@@ -255,7 +321,7 @@ cabbages = Cabbages(size)
 herds = []
 herd = Herd(speed = 5, endurance = 8, eating = 1, fertility = 0.05) 
 herds.append(herd)
-cabbages.generate(10, herds[0])
+cabbages.generate(10)
 
 def inf_cycle():
     if stop % 2 == 0:
@@ -264,12 +330,11 @@ def inf_cycle():
                 if herd.alive == 1:
                     nearest_Cabbage = findNearestCabbage(herd, cabbages)
                     cabbage_cord_x, cabbage_cord_y = nearest_Cabbage.x, nearest_Cabbage.y
-
                     herd.move_herd(cabbage_cord_x, cabbage_cord_y)
                     herd.moving_nearest()
 
                     herd_cord_x, herd_cord_y = herd.x, herd.y
-                    if herd_cord_x == cabbage_cord_x and herd_cord_y == cabbage_cord_y: 
+                    if herd_cord_x == cabbage_cord_x and herd_cord_y == cabbage_cord_y:
                         herd.eat_cabbage(cabbages, nearest_Cabbage)
                 else:
                     herds.remove(herd)
