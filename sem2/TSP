@@ -1,0 +1,84 @@
+import numpy as np
+import pandas as pd
+from functools import lru_cache
+
+input_information = {"graph": {"nodes": [1, 2, 3, 4], "edges": [[1, 2], [2, 3], [3, 4], [1, 4]]}}
+graph = input_information["graph"]
+nodes = graph["nodes"]
+len_matrix = len(nodes)
+edges = graph["edges"]
+zero_matrix = np.zeros((len_matrix, len_matrix), dtype=int)
+
+# матрица связей
+for i in range(len_matrix):
+    matrix_element = edges[i]
+    for j in range(len(matrix_element)):
+        zero_matrix[matrix_element[0] - 1][matrix_element[1] - 1] = 1
+        zero_matrix[matrix_element[1] - 1][matrix_element[0] - 1] = 1
+
+# матрица расстояний
+distance_matrix = np.full((len_matrix, len_matrix), float('inf'))
+distance_matrix[zero_matrix == 1] = 1 # если есть связи, то возращает True и будет единичка в матрице расстояний
+np.fill_diagonal(distance_matrix, 0) # заполняем диагональ нулями, так как сам в себя идти не может
+
+# Решение задачи коммивояжера
+def tsp_dp(distance_matrix):
+    n = len(distance_matrix)
+    all_visited = (1 << n) - 1  # Все вершины посещены
+
+    @lru_cache(None)
+    def visit(city, visited):
+        if visited == all_visited:
+            return distance_matrix[city][0] if distance_matrix[city][0] != float('inf') else float('inf')
+
+        min_cost = float('inf')
+        for next_city in range(n):
+            if not (visited & (1 << next_city)):  # Если вершина еще не посещена
+                cost = distance_matrix[city][next_city]
+                if cost != float('inf'):  # Проверяем, есть ли связь
+                    new_cost = cost + visit(next_city, visited | (1 << next_city))
+                    min_cost = min(min_cost, new_cost)
+
+        return min_cost
+
+    # Добавляем восстановление пути без возврата в начальную точку
+    def get_path():
+        visited = 1 << 0  # Начинаем с вершины 0
+        path = [0]
+        total_cost = 0
+
+        while len(path) < n:  # Пока не посетили все вершины
+            min_cost = float('inf')
+            next_city = None
+            current = path[-1]
+
+            for candidate in range(n):
+                if not (visited & (1 << candidate)):
+                    if distance_matrix[current][candidate] != float('inf'):
+                        cost = distance_matrix[current][candidate]
+                        if cost < min_cost:
+                            min_cost = cost
+                            next_city = candidate
+
+            if next_city is None:
+                return None, None  # Нет решения
+
+            path.append(next_city)
+            total_cost += min_cost
+            visited |= (1 << next_city)
+
+        # Проверяем возможность возврата, но не добавляем начальную точку в путь
+        if distance_matrix[path[-1]][0] != float('inf'):
+            total_cost += distance_matrix[path[-1]][0]
+            return total_cost, [nodes[i] for i in path]
+        return None, None
+
+    cost = visit(0, 1 << 0)
+    total_cost, path = get_path()
+
+    return cost, path
+
+# Выполнение и вывод результатов
+min_cost, optimal_path = tsp_dp(distance_matrix)
+PathResult = {"path":optimal_path, "total_distance": float(min_cost)}
+print(PathResult)
