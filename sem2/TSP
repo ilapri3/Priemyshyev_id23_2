@@ -28,17 +28,23 @@ def tsp_dp(distance_matrix):
 
     @lru_cache(None)
     def visit(city, visited):
+        # Если все вершины посещены
         if visited == all_visited:
-            return distance_matrix[city][0] if distance_matrix[city][0] != float('inf') else float('inf')
+            # Проверяем, можно ли вернуться в начальную точку (0)
+            distance_to_start = distance_matrix[city][0]
+            if distance_to_start != float('inf'):
+                return distance_to_start  # Возвращаем расстояние до начальной точки
+            else:
+                return float('inf')
 
         min_cost = float('inf')
         for next_city in range(n):
             if not (visited & (1 << next_city)):  # Если вершина еще не посещена
                 cost = distance_matrix[city][next_city]
                 if cost != float('inf'):  # Проверяем, есть ли связь
+                    # побитовая операция, которая добавляет next_city в множество посещенных вершин.
                     new_cost = cost + visit(next_city, visited | (1 << next_city))
                     min_cost = min(min_cost, new_cost)
-
         return min_cost
 
     # Добавляем восстановление пути без возврата в начальную точку
@@ -52,25 +58,29 @@ def tsp_dp(distance_matrix):
             next_city = None
             current = path[-1]
 
-            for candidate in range(n):
-                if not (visited & (1 << candidate)):
-                    if distance_matrix[current][candidate] != float('inf'):
-                        cost = distance_matrix[current][candidate]
+            for possible_city in range(n):
+                #проверяем, есть ли в visited единица на той же позиции, что и в (1 << possible_city).
+                if not (visited & (1 << possible_city)):
+                    if distance_matrix[current][possible_city] != float('inf'):
+                        cost = distance_matrix[current][possible_city]
                         if cost < min_cost:
                             min_cost = cost
-                            next_city = candidate
+                            next_city = possible_city
 
             if next_city is None:
                 return None, None  # Нет решения
 
             path.append(next_city)
             total_cost += min_cost
-            visited |= (1 << next_city)
+            visited = visited | (1 << next_city)
 
         # Проверяем возможность возврата, но не добавляем начальную точку в путь
         if distance_matrix[path[-1]][0] != float('inf'):
             total_cost += distance_matrix[path[-1]][0]
-            return total_cost, [nodes[i] for i in path]
+            path_nodes = []
+            for el in path:
+                path_nodes.append(nodes[el])
+            return total_cost, path_nodes
         return None, None
 
     cost = visit(0, 1 << 0)
@@ -78,7 +88,6 @@ def tsp_dp(distance_matrix):
 
     return cost, path
 
-# Выполнение и вывод результатов
 min_cost, optimal_path = tsp_dp(distance_matrix)
 PathResult = {"path":optimal_path, "total_distance": float(min_cost)}
 print(PathResult)
